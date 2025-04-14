@@ -1,34 +1,36 @@
-services:
-  ollama:
-    volumes:
-      - ollama:/root/.ollama
-    container_name: ollama
-    pull_policy: always
-    tty: true
-    restart: unless-stopped
-    image: ollama/ollama:${OLLAMA_DOCKER_TAG-latest}
 
+services:
   open-webui:
-    build:
-      context: .
-      args:
-        OLLAMA_BASE_URL: '/ollama'
-      dockerfile: Dockerfile
-    image: ghcr.io/open-webui/open-webui:${WEBUI_DOCKER_TAG-main}
+    context: .
+    dockerfile: Dockerfile
     container_name: open-webui
-    volumes:
-      - open-webui:/app/backend/data
-    depends_on:
-      - ollama
+    restart: always
     ports:
-      - ${OPEN_WEBUI_PORT-3000}:8080
+      - "3000:3000"
     environment:
-      - 'OLLAMA_BASE_URL=http://ollama:11434'
-      - 'WEBUI_SECRET_KEY='
-    extra_hosts:
-      - host.docker.internal:host-gateway
-    restart: unless-stopped
+      - OLLAMA_API_BASE_URL=http://172.16.12.85:11434
+    volumes:
+      - open-webui-data:/app/backend/data
+    networks:
+      bridge-net:
+        ipv4_address: 172.28.0.10
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared-open-ui
+    restart: always
+    command: tunnel --no-autoupdate run --token eyJhIjoiMmRkNjk4MmZjYzE4ZDY5N2M3YWUzNDdkMWM4MjgwMjAiLCJ0IjoiMDg1ZjA3MTktYjA5Yy00N2VkLTkwNGItMTIzYjUzMTUwYzdjIiwicyI6Ik1qSTFabUkyWVRFdE1ERTVZeTAwT1dJNUxUaGtaakl0WlRGbVpUVXhNalppTVRaayJ9
+    networks:
+      bridge-net:
+        ipv4_address: 172.28.0.11
 
 volumes:
-  ollama: {}
-  open-webui: {}
+  open-webui-data:
+
+networks:
+  bridge-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
+          gateway: 172.28.0.1
