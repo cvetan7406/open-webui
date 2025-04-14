@@ -1,8 +1,9 @@
-version: "3.9"
+
 
 services:
   open-webui:
-    image: ghcr.io/open-webui/open-webui:v0.1.106
+    image: ghcr.io/open-webui/open-webui:release-v0.1.106
+
     container_name: open-webui
     restart: always
     ports:
