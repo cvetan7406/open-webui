@@ -1,8 +1,11 @@
 
 services:
   open-webui:
-    context: .
-    dockerfile: Dockerfile
+    pull_policy: build
+
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: open-webui
     restart: always
     ports:
